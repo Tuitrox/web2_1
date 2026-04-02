@@ -4,7 +4,6 @@ from internal.model.schemas import Post, ProcessedPost
  
 async def stage_process(post: Post) -> ProcessedPost:
     """Этап обработки одного поста (fan-out worker)."""
-    # Имитируем какую-то работу
     await asyncio.sleep(0.05)
     return ProcessedPost(
         id=post.id,
@@ -16,7 +15,7 @@ async def stage_process(post: Post) -> ProcessedPost:
  
  
 async def stage_filter(posts: list[ProcessedPost], min_words: int) -> list[ProcessedPost]:
-    """Этап фильтрации — оставляем посты с word_count >= min_words."""
+    """Оставляем посты с word_count >= min_words."""
     return [p for p in posts if p.word_count >= min_words]
  
  
@@ -27,12 +26,11 @@ async def run_pipeline(
 ) -> list[ProcessedPost]:
     """
     Pipeline:
-      1) Fan-out: раздаём посты на N воркеров для обработки
-      2) Fan-in: собираем результаты
-      3) Фильтрация по min_words
+      Fan-out: раздаём посты на N воркеров для обработки
+      Fan-in: собираем результаты
+      Фильтрация по min_words
     """
  
-    # --- Fan-out / Fan-in ---
     semaphore = asyncio.Semaphore(workers)
  
     async def limited_process(post: Post) -> ProcessedPost:
@@ -44,7 +42,6 @@ async def run_pipeline(
     processed = await asyncio.gather(*(limited_process(p) for p in posts))
     processed = list(processed)
  
-    # --- Stage 2: фильтрация ---
     result = await stage_filter(processed, min_words)
  
     return result

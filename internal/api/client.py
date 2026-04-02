@@ -19,7 +19,6 @@ async def fetch_posts(limit: int = 10) -> list[Post]:
             response.raise_for_status()
             data = response.json()
     except Exception:
-        # Fallback на мок-данные если API недоступен
         data = _MOCK_POSTS
  
     posts = [Post(**item) for item in data[:limit]]
